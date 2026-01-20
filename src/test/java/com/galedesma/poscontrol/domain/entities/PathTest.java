@@ -8,40 +8,39 @@ class PathTest {
 
     @Test
     void pathCreatedSuccessfully() {
-        Path path = new Path(0, 1, 10);
+        Integer origin = 0;
+        Integer destination = 1;
+        Integer cost = 10;
 
-        Integer expectedOrigin = 0;
-        Integer expectedDestination = 1;
-        Integer expectedCost = 10;
+        Path path = new Path(origin, destination, cost);
 
-        assertAll("Success assertions",
-                () -> assertEquals(expectedOrigin, path.getOrigin()),
-                () -> assertEquals(expectedDestination, path.getDestination()),
-                () -> assertEquals(expectedCost, path.getCost())
+        assertAll("Path creation success assertions",
+                () -> assertEquals(origin, path.getOrigin()),
+                () -> assertEquals(destination, path.getDestination()),
+                () -> assertEquals(cost, path.getCost())
         );
     }
 
     @Test
-    void pathCreatedWithNullValue() {
-        assertThrows(IllegalArgumentException.class, ()-> new Path(null, 1, 10));
-    }
-
-    @Test
-    void pathCreatedWithNegativeValue() {
-        assertThrows(IllegalArgumentException.class, ()-> new Path(0, -1, 10));
+    void pathCreatedWithInvalidValue() {
+        assertAll("Path creation with invalid values assertions",
+                () -> assertThrows(IllegalArgumentException.class, ()-> new Path(null, 1, 10)),
+                () -> assertThrows(IllegalArgumentException.class, ()-> new Path(0, -1, 10))
+        );
     }
 
     @Test
     void pathCreatedWithSameOriginAndDestination() {
-        Path path = new Path(0, 0, 10);
-
-        Integer expectedOrigin = 0;
-        Integer expectedDestination = 0;
+        Integer origin = 0;
+        Integer destination = 0;
+        Integer cost = 10;
         Integer expectedCost = 0;
 
-        assertAll("Should override cost",
-                () -> assertEquals(expectedOrigin, path.getOrigin()),
-                () -> assertEquals(expectedDestination, path.getDestination()),
+        Path path = new Path(origin, destination, cost);
+
+        assertAll("Path created with same origin and destination assertions",
+                () -> assertEquals(origin, path.getOrigin()),
+                () -> assertEquals(destination, path.getDestination()),
                 () -> assertEquals(expectedCost, path.getCost())
         );
     }
