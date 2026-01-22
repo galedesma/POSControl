@@ -1,4 +1,4 @@
-package com.galedesma.poscontrol.domain.entities;
+package com.galedesma.poscontrol.domain.model;
 
 import lombok.Getter;
 
