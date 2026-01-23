@@ -2,6 +2,7 @@ package com.galedesma.poscontrol.domain.model;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,19 @@ public class POSMap {
         this.pos.put(id, newPos);
 
         return newPos;
+    }
+
+    public PointOfSale removePos(Integer id){
+        PointOfSale removed = this.pos.remove(id);
+
+        Map<Integer, Path> neighbors = removed.getPaths();
+
+        for (Integer neighborId : new ArrayList<>(neighbors.keySet())){
+            removed.deletePath(neighborId);
+            this.pos.get(neighborId).deletePath(removed.getId());
+        }
+
+        return removed;
     }
 
     public void addPath(Integer originId, Integer destinationId, Integer weight){

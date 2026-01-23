@@ -123,4 +123,42 @@ class POSMapTest {
                 () -> assertThrows(NullPointerException.class, () -> POSMap.removePath(result1.getId(), 1000))
         );
     }
+
+    @Test
+    void removePOSSuccessfully() {
+        POSMap POSMap = new POSMap();
+        Integer posId1 = 1;
+        String posName1 = "foo";
+        Integer posId2 = 2;
+        String posName2 = "bar";
+        Integer posId3 = 3;
+        String posName3 = "fizz";
+        Integer expectedSize = 2;
+        Integer expectedPathSize = 1;
+        Integer expectedPathCost = 10;
+
+        PointOfSale result1 = POSMap.addPos(posId1, posName1);
+        PointOfSale result2 = POSMap.addPos(posId2, posName2);
+        PointOfSale result3 = POSMap.addPos(posId3, posName3);
+
+        POSMap.addPath(result1.getId(), result2.getId(), expectedPathCost);
+        POSMap.addPath(result1.getId(), result3.getId(), expectedPathCost);
+        POSMap.addPath(result3.getId(), result2.getId(), expectedPathCost);
+
+        PointOfSale removed = POSMap.removePos(result3.getId());
+
+        assertAll("POS removal with two neighbors success",
+                () -> assertEquals(expectedSize, POSMap.getPos().size()),
+                () -> assertEquals(posName1, result1.getName()),
+                () -> assertEquals(posName2, result2.getName()),
+                () -> assertEquals(result2.getId(), result1.getPaths().get(result2.getId()).getDestination()),
+                () -> assertEquals(expectedPathSize, result1.getPaths().size()),
+                () -> assertEquals(expectedPathCost, result1.getPaths().get(result2.getId()).getCost()),
+                () -> assertEquals(result1.getId(), result2.getPaths().get(result1.getId()).getDestination()),
+                () -> assertEquals(expectedPathSize, result2.getPaths().size()),
+                () -> assertEquals(expectedPathCost, result2.getPaths().get(result1.getId()).getCost()),
+                () -> assertEquals(posName3, removed.getName()),
+                () -> assertEquals(0, removed.getPaths().size())
+        );
+    }
 }
