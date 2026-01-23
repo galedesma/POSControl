@@ -2,30 +2,30 @@ package com.galedesma.poscontrol.domain.model;
 
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 @Getter
-public class Map {
-    private final List<PointOfSale> pos;
+public class POSMap {
+    private final Map<Integer, PointOfSale> pos;
 
-    public Map(){
-        this.pos = new ArrayList<>();
+    public POSMap(){
+        this.pos = new HashMap<>();
     }
 
-    public PointOfSale addPos(String posName){
-        PointOfSale newPos = new PointOfSale(this.pos.size(), posName);
-        this.pos.add(newPos);
+    public PointOfSale addPos(Integer id, String posName){
+        PointOfSale newPos = new PointOfSale(id, posName);
+        this.pos.put(id, newPos);
 
         return newPos;
     }
 
     public void addPath(Integer originId, Integer destinationId, Integer weight){
-        if (originId < 0 || originId >= this.pos.size()){
+        if (originId < 0){
             throw new IndexOutOfBoundsException();
         }
 
-        if (destinationId < 0 || destinationId >= this.pos.size()){
+        if (destinationId < 0){
             throw new IndexOutOfBoundsException();
         }
 
@@ -34,11 +34,11 @@ public class Map {
     }
 
     public void removePath(Integer originId, Integer destinationId){
-        if (originId < 0 || originId >= this.pos.size()){
+        if (originId < 0){
             throw new IndexOutOfBoundsException();
         }
 
-        if (destinationId < 0 || destinationId >= this.pos.size()){
+        if (destinationId < 0){
             throw new IndexOutOfBoundsException();
         }
 

@@ -4,44 +4,48 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class MapTest {
+class POSMapTest {
 
     @Test
     void mapCreatedSuccessfully() {
-        Map map = new Map();
+        POSMap POSMap = new POSMap();
 
-        assertEquals(0, map.getPos().size());
+        assertEquals(0, POSMap.getPos().size());
     }
 
     @Test
     void addsPointOfSaleSuccessfully() {
-        Map map = new Map();
+        POSMap POSMap = new POSMap();
+        Integer posId = 1;
         String posName = "foo";
         Integer expectedSize = 1;
-        PointOfSale result = map.addPos("foo");
+        PointOfSale result = POSMap.addPos(posId, posName);
 
         assertAll("POS addition success",
-                () -> assertEquals(expectedSize, map.getPos().size()),
+                () -> assertEquals(expectedSize, POSMap.getPos().size()),
+                () -> assertEquals(posId, result.getId()),
                 () -> assertEquals(posName, result.getName())
         );
     }
 
     @Test
     void addsPathBetweenTwoPOSSuccessfully() {
-        Map map = new Map();
+        POSMap POSMap = new POSMap();
+        Integer posId1 = 1;
         String posName1 = "foo";
+        Integer posId2 = 2;
         String posName2 = "bar";
         Integer expectedSize = 2;
         Integer expectedPathSize = 1;
         Integer expectedPathCost = 10;
 
-        PointOfSale result1 = map.addPos(posName1);
-        PointOfSale result2 = map.addPos(posName2);
+        PointOfSale result1 = POSMap.addPos(posId1, posName1);
+        PointOfSale result2 = POSMap.addPos(posId2, posName2);
 
-        map.addPath(result1.getId(), result2.getId(), expectedPathCost);
+        POSMap.addPath(result1.getId(), result2.getId(), expectedPathCost);
 
         assertAll("Path addition between two POS success",
-                () -> assertEquals(expectedSize, map.getPos().size()),
+                () -> assertEquals(expectedSize, POSMap.getPos().size()),
                 () -> assertEquals(posName1, result1.getName()),
                 () -> assertEquals(posName2, result2.getName()),
                 () -> assertEquals(result2.getId(), result1.getPaths().get(result2.getId()).getDestination()),
@@ -55,38 +59,42 @@ class MapTest {
 
     @Test
     void addPathWithInvalidIndexes() {
-        Map map = new Map();
+        POSMap POSMap = new POSMap();
+        Integer posId1 = 1;
         String posName1 = "foo";
+        Integer posId2 = 2;
         String posName2 = "bar";
 
         Integer expectedPathCost = 10;
 
-        PointOfSale result1 = map.addPos(posName1);
-        PointOfSale result2 = map.addPos(posName2);
+        PointOfSale result1 = POSMap.addPos(posId1, posName1);
+        PointOfSale result2 = POSMap.addPos(posId2, posName2);
 
         assertAll("Path addition between two POS with invalid indexes assertions",
-                () -> assertThrows(IndexOutOfBoundsException.class, () -> map.addPath(-1, result2.getId(), expectedPathCost)),
-                () -> assertThrows(IndexOutOfBoundsException.class, () -> map.addPath(result1.getId(), 1000, expectedPathCost))
+                () -> assertThrows(IndexOutOfBoundsException.class, () -> POSMap.addPath(-1, result2.getId(), expectedPathCost)),
+                () -> assertThrows(NullPointerException.class, () -> POSMap.addPath(result1.getId(), 1000, expectedPathCost))
         );
     }
 
     @Test
     void removePathSuccessfully() {
-        Map map = new Map();
+        POSMap POSMap = new POSMap();
+        Integer posId1 = 1;
         String posName1 = "foo";
+        Integer posId2 = 2;
         String posName2 = "bar";
         Integer expectedSize = 2;
         Integer expectedPathSize = 0;
         Integer expectedPathCost = 10;
 
-        PointOfSale result1 = map.addPos(posName1);
-        PointOfSale result2 = map.addPos(posName2);
+        PointOfSale result1 = POSMap.addPos(posId1, posName1);
+        PointOfSale result2 = POSMap.addPos(posId2, posName2);
 
-        map.addPath(result1.getId(), result2.getId(), expectedPathCost);
-        map.removePath(result1.getId(), result2.getId());
+        POSMap.addPath(result1.getId(), result2.getId(), expectedPathCost);
+        POSMap.removePath(result1.getId(), result2.getId());
 
         assertAll("Path removal between two POS success",
-                () -> assertEquals(expectedSize, map.getPos().size()),
+                () -> assertEquals(expectedSize, POSMap.getPos().size()),
                 () -> assertEquals(posName1, result1.getName()),
                 () -> assertEquals(posName2, result2.getName()),
                 () -> assertNull(result1.getPaths().get(result2.getId())),
@@ -98,19 +106,21 @@ class MapTest {
 
     @Test
     void removePathWithInvalidIndexes() {
-        Map map = new Map();
+        POSMap POSMap = new POSMap();
+        Integer posId1 = 1;
         String posName1 = "foo";
+        Integer posId2 = 2;
         String posName2 = "bar";
         Integer expectedPathCost = 10;
 
-        PointOfSale result1 = map.addPos(posName1);
-        PointOfSale result2 = map.addPos(posName2);
+        PointOfSale result1 = POSMap.addPos(posId1, posName1);
+        PointOfSale result2 = POSMap.addPos(posId2, posName2);
 
-        map.addPath(result1.getId(), result2.getId(), expectedPathCost);
+        POSMap.addPath(result1.getId(), result2.getId(), expectedPathCost);
 
         assertAll("Path removal between two POS with invalid indexes assertions",
-                () -> assertThrows(IndexOutOfBoundsException.class, () -> map.removePath(-1, result2.getId())),
-                () -> assertThrows(IndexOutOfBoundsException.class, () -> map.removePath(result1.getId(), 1000))
+                () -> assertThrows(IndexOutOfBoundsException.class, () -> POSMap.removePath(-1, result2.getId())),
+                () -> assertThrows(NullPointerException.class, () -> POSMap.removePath(result1.getId(), 1000))
         );
     }
 }
