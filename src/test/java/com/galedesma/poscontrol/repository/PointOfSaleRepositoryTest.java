@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PointOfSaleRepositoryTest {
 
     @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:latest")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18.1-alpine")
             .withDatabaseName("testdb")
             .withUsername("test")
             .withPassword("test")
