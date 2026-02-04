@@ -2,17 +2,17 @@ package com.galedesma.poscontrol.service;
 
 import com.galedesma.poscontrol.entity.PointOfSale;
 import com.galedesma.poscontrol.repository.PointOfSaleRepository;
-import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.lang.reflect.Field;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static com.galedesma.poscontrol.util.TestUtils.createPersistedPOS;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,18 +23,6 @@ class PointOfSaleServiceTest {
 
     @InjectMocks
     PointOfSaleService service;
-
-    @SneakyThrows
-    private PointOfSale createPersistedPOS(Integer id, String name) {
-        PointOfSale pos = new PointOfSale();
-        pos.setName(name);
-
-        Field idField = PointOfSale.class.getDeclaredField("id");
-        idField.setAccessible(true);
-        idField.set(pos, id);
-
-        return pos;
-    }
 
     @Test
     void getAllPOS() {
