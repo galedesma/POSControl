@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: POSControl
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${POSTGRES_URL}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
