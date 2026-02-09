@@ -6,3 +6,6 @@ spring:
     url: ${POSTGRES_URL}/${POSTGRES_DB}
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
+  data:
+    redis:
+      url: ${REDIS_URL}

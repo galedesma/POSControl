@@ -11,3 +11,11 @@ services:
     volumes:
       - ./01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
       - ./02_seed.sql:/docker-entrypoint-initdb.d/02_seed.sql
+  redis:
+    container_name: redis-cache
+    image: redis:8.4-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command:
+      - "redis-server"
