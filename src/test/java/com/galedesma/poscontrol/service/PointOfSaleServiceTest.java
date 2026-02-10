@@ -1,7 +1,9 @@
 package com.galedesma.poscontrol.service;
 
 import com.galedesma.poscontrol.dto.out.GetAllPOSResponse;
+import com.galedesma.poscontrol.dto.out.PointOfSaleResponse;
 import com.galedesma.poscontrol.entity.PointOfSale;
+import com.galedesma.poscontrol.exception.PointOfSaleNotFoundException;
 import com.galedesma.poscontrol.mapper.PointOfSaleMapper;
 import com.galedesma.poscontrol.repository.PointOfSaleRepository;
 import org.junit.jupiter.api.Test;
@@ -13,10 +15,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.galedesma.poscontrol.util.TestUtils.createPersistedPOS;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,5 +54,29 @@ class PointOfSaleServiceTest {
                 () -> assertEquals(name2, results.pointsOfSale().get(1).name())
 
         );
+    }
+
+    @Test
+    void getPOSByIdSuccessfully() {
+        Integer id = 1;
+        String name = "foo";
+
+        PointOfSale pos = createPersistedPOS(id, name);
+
+        when(repository.findById(id)).thenReturn(Optional.of(pos));
+
+        PointOfSaleResponse result = service.getPOSById(id);
+
+        assertAll("Find Point of Sale by Id success",
+                () -> assertEquals(id, result.id()),
+                () -> assertEquals(name, result.name())
+        );
+    }
+
+    @Test
+    void getPOSByIdFails() {
+        Integer id = 10000;
+
+        assertThrows(PointOfSaleNotFoundException.class, () -> service.getPOSById(id));
     }
 }
