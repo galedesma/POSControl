@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,7 +12,7 @@ import java.util.Set;
 @Table(name = "point_of_sale")
 @Getter
 @NoArgsConstructor
-public class PointOfSale implements Serializable {
+public class PointOfSale {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

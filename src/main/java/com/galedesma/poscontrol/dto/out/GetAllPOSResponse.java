@@ -1,6 +1,7 @@
 package com.galedesma.poscontrol.dto.out;
 
+import java.io.Serializable;
 import java.util.List;
 
-public record GetAllPOSResponse(Integer count, List<PointOfSaleResponse> pointsOfSale) {
+public record GetAllPOSResponse(Integer count, List<PointOfSaleResponse> pointsOfSale) implements Serializable {
 }
