@@ -1,11 +1,15 @@
 package com.galedesma.poscontrol.service;
 
+import com.galedesma.poscontrol.dto.out.GetAllPOSResponse;
 import com.galedesma.poscontrol.entity.PointOfSale;
+import com.galedesma.poscontrol.mapper.PointOfSaleMapper;
 import com.galedesma.poscontrol.repository.PointOfSaleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
@@ -20,6 +24,9 @@ class PointOfSaleServiceTest {
 
     @Mock
     PointOfSaleRepository repository;
+
+    @Spy
+    PointOfSaleMapper mapper = Mappers.getMapper(PointOfSaleMapper.class);
 
     @InjectMocks
     PointOfSaleService service;
@@ -37,12 +44,12 @@ class PointOfSaleServiceTest {
 
         when(repository.findAll()).thenReturn(List.of(pos1, pos2));
 
-        List<PointOfSale> results = service.getAllPOS();
+        GetAllPOSResponse results = service.getAllPOS();
 
         assertAll("Find all Point Of Sale assertions",
-                () -> assertEquals(expectedSize, results.size()),
-                () -> assertEquals(name1, results.getFirst().getName()),
-                () -> assertEquals(name2, results.get(1).getName())
+                () -> assertEquals(expectedSize, results.count()),
+                () -> assertEquals(name1, results.pointsOfSale().getFirst().name()),
+                () -> assertEquals(name2, results.pointsOfSale().get(1).name())
 
         );
     }
