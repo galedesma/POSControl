@@ -27,6 +27,7 @@ public class PointOfSaleService {
         return new GetAllPOSResponse(responseList.size(), responseList);
     }
 
+    @Cacheable(value = "point_of_sale", key = "#id")
     public PointOfSaleResponse getPOSById(Integer id){
         Optional<PointOfSale> pointOfSale = this.repository.findById(id);
 
