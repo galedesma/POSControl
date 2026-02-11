@@ -22,7 +22,7 @@ public class PointOfSaleService {
     private final PointOfSaleRepository repository;
     private final PointOfSaleMapper mapper;
 
-    @Cacheable(value = "points_of_sale")
+    @Cacheable(value = "points_of_sale", key = "'all'")
     public GetAllPOSResponse getAllPOS() {
         List<PointOfSale> pointOfSaleList = this.repository.findAll();
         List<PointOfSaleResponse> responseList = pointOfSaleList.stream().map(mapper::toResponse).toList();
