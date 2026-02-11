@@ -25,7 +25,7 @@ public class PointOfSaleController {
         return ResponseEntity.ok(service.getPOSById(id));
     }
 
-    @PostMapping(value = "/{id}")
+    @PutMapping(value = "/{id}")
     public ResponseEntity<PointOfSaleResponse> updatePosById(@PathVariable Integer id, @RequestBody PointOfSaleUpdateRequest body) {
         return ResponseEntity.ok(service.updatePOS(id, body));
     }
