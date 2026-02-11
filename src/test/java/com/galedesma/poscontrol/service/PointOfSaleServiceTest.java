@@ -19,6 +19,7 @@ import java.util.Optional;
 
 import static com.galedesma.poscontrol.util.TestUtils.createPersistedPOS;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -78,5 +79,33 @@ class PointOfSaleServiceTest {
         Integer id = 10000;
 
         assertThrows(PointOfSaleNotFoundException.class, () -> service.getPOSById(id));
+    }
+
+    @Test
+    void updatePOSByIdSuccess() {
+        Integer id = 1;
+        String oldName = "foo";
+        String newName = "bar";
+
+        PointOfSale oldPos = createPersistedPOS(id, oldName);
+        PointOfSale newPos = createPersistedPOS(id, newName);
+
+        when(repository.findById(id)).thenReturn(Optional.of(oldPos));
+        when(repository.save(any(PointOfSale.class))).thenReturn(newPos);
+
+        PointOfSaleResponse result = service.updatePOS(id, newName);
+
+        assertAll("Find Point of Sale by Id success",
+                () -> assertEquals(id, result.id()),
+                () -> assertEquals(newName, result.name())
+        );
+    }
+
+    @Test
+    void updatePOSByIdFailure() {
+        Integer id = 10000;
+        String newName = "bar";
+
+        assertThrows(PointOfSaleNotFoundException.class, () -> service.updatePOS(id, newName));
     }
 }

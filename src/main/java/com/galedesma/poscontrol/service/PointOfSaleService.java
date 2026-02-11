@@ -21,14 +21,14 @@ public class PointOfSaleService {
     private final PointOfSaleMapper mapper;
 
     @Cacheable(value = "points_of_sale")
-    public GetAllPOSResponse getAllPOS(){
+    public GetAllPOSResponse getAllPOS() {
         List<PointOfSale> pointOfSaleList = this.repository.findAll();
         List<PointOfSaleResponse> responseList = pointOfSaleList.stream().map(mapper::toResponse).toList();
         return new GetAllPOSResponse(responseList.size(), responseList);
     }
 
     @Cacheable(value = "point_of_sale", key = "#id")
-    public PointOfSaleResponse getPOSById(Integer id){
+    public PointOfSaleResponse getPOSById(Integer id) {
         Optional<PointOfSale> pointOfSale = this.repository.findById(id);
 
         if (pointOfSale.isEmpty()) {
@@ -37,4 +37,20 @@ public class PointOfSaleService {
 
         return mapper.toResponse(pointOfSale.get());
     }
+
+    public PointOfSaleResponse updatePOS(Integer id, String name) {
+        Optional<PointOfSale> optional = this.repository.findById(id);
+
+        if (optional.isEmpty()) {
+            throw new PointOfSaleNotFoundException(String.format("Point of Sale with ID %d not found", id));
+        }
+
+        PointOfSale pointOfSale = optional.get();
+        pointOfSale.setName(name);
+
+        PointOfSale saved = this.repository.save(pointOfSale);
+
+        return mapper.toResponse(saved);
+    }
+
 }
