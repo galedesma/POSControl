@@ -1,5 +1,6 @@
 package com.galedesma.poscontrol.service;
 
+import com.galedesma.poscontrol.dto.in.PointOfSaleUpdateRequest;
 import com.galedesma.poscontrol.dto.out.GetAllPOSResponse;
 import com.galedesma.poscontrol.dto.out.PointOfSaleResponse;
 import com.galedesma.poscontrol.entity.PointOfSale;
@@ -7,6 +8,7 @@ import com.galedesma.poscontrol.exception.PointOfSaleNotFoundException;
 import com.galedesma.poscontrol.mapper.PointOfSaleMapper;
 import com.galedesma.poscontrol.repository.PointOfSaleRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -38,7 +40,8 @@ public class PointOfSaleService {
         return mapper.toResponse(pointOfSale.get());
     }
 
-    public PointOfSaleResponse updatePOS(Integer id, String name) {
+    @CachePut(value = "point_of_sale", key = "#id")
+    public PointOfSaleResponse updatePOS(Integer id, PointOfSaleUpdateRequest updateRequest) {
         Optional<PointOfSale> optional = this.repository.findById(id);
 
         if (optional.isEmpty()) {
@@ -46,7 +49,7 @@ public class PointOfSaleService {
         }
 
         PointOfSale pointOfSale = optional.get();
-        pointOfSale.setName(name);
+        pointOfSale.setName(updateRequest.name());
 
         PointOfSale saved = this.repository.save(pointOfSale);
 
