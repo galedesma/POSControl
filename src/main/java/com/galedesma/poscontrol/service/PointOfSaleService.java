@@ -1,5 +1,6 @@
 package com.galedesma.poscontrol.service;
 
+import com.galedesma.poscontrol.dto.in.PointOfSaleCreateRequest;
 import com.galedesma.poscontrol.dto.in.PointOfSaleUpdateRequest;
 import com.galedesma.poscontrol.dto.out.GetAllPOSResponse;
 import com.galedesma.poscontrol.dto.out.PointOfSaleResponse;
@@ -27,6 +28,12 @@ public class PointOfSaleService {
         List<PointOfSale> pointOfSaleList = this.repository.findAll();
         List<PointOfSaleResponse> responseList = pointOfSaleList.stream().map(mapper::toResponse).toList();
         return new GetAllPOSResponse(responseList.size(), responseList);
+    }
+
+    public PointOfSaleResponse createPOS(PointOfSaleCreateRequest createRequest){
+        PointOfSale entity = mapper.toEntity(createRequest);
+        PointOfSale saved = this.repository.save(entity);
+        return mapper.toResponse(saved);
     }
 
     @Cacheable(value = "point_of_sale", key = "#id")

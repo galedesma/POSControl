@@ -1,5 +1,6 @@
 package com.galedesma.poscontrol.mapper;
 
+import com.galedesma.poscontrol.dto.in.PointOfSaleCreateRequest;
 import com.galedesma.poscontrol.dto.out.PointOfSaleResponse;
 import com.galedesma.poscontrol.entity.PointOfSale;
 import org.junit.jupiter.api.Test;
@@ -26,5 +27,16 @@ class PointOfSaleMapperTest {
                 () -> assertEquals(id, result.id()),
                 () -> assertEquals(name, result.name())
         );
+    }
+
+    @Test
+    void toEntity() {
+        String name = "foo";
+
+        PointOfSaleCreateRequest request = new PointOfSaleCreateRequest(name);
+
+        PointOfSale result = mapper.toEntity(request);
+
+        assertEquals(name, result.getName());
     }
 }

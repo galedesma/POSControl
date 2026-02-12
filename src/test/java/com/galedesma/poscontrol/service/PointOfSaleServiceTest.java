@@ -1,5 +1,6 @@
 package com.galedesma.poscontrol.service;
 
+import com.galedesma.poscontrol.dto.in.PointOfSaleCreateRequest;
 import com.galedesma.poscontrol.dto.in.PointOfSaleUpdateRequest;
 import com.galedesma.poscontrol.dto.out.GetAllPOSResponse;
 import com.galedesma.poscontrol.dto.out.PointOfSaleResponse;
@@ -111,5 +112,23 @@ class PointOfSaleServiceTest {
         PointOfSaleUpdateRequest updateRequest = new PointOfSaleUpdateRequest(newName);
 
         assertThrows(PointOfSaleNotFoundException.class, () -> service.updatePOS(id, updateRequest));
+    }
+
+    @Test
+    void createPOSSuccessfully() {
+        Integer id = 11;
+        String name = "foo";
+        PointOfSaleCreateRequest createRequest = new PointOfSaleCreateRequest(name);
+
+        PointOfSale entity = createPersistedPOS(id, name);
+
+        when(repository.save(any(PointOfSale.class))).thenReturn(entity);
+
+        PointOfSaleResponse result = service.createPOS(createRequest);
+
+        assertAll("Find Point of Sale by Id success",
+                () -> assertEquals(id, result.id()),
+                () -> assertEquals(name, result.name())
+        );
     }
 }
