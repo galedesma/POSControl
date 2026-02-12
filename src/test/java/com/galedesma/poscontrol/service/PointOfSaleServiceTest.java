@@ -22,7 +22,7 @@ import java.util.Optional;
 import static com.galedesma.poscontrol.util.TestUtils.createPersistedPOS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PointOfSaleServiceTest {
@@ -130,5 +130,26 @@ class PointOfSaleServiceTest {
                 () -> assertEquals(id, result.id()),
                 () -> assertEquals(name, result.name())
         );
+    }
+
+    @Test
+    void deletePOSSuccessfully() {
+        Integer id = 20;
+        String name = "foo";
+
+        PointOfSale entity = createPersistedPOS(id, name);
+
+        when(repository.findById(id)).thenReturn(Optional.of(entity));
+
+        service.deletePOSById(id);
+
+        verify(repository, times(1)).deleteById(id);
+    }
+
+    @Test
+    void deletePOSFailure() {
+        Integer id = 10000;
+
+        assertThrows(PointOfSaleNotFoundException.class, () -> service.deletePOSById(id));
     }
 }

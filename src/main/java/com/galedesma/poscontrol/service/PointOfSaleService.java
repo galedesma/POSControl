@@ -9,6 +9,7 @@ import com.galedesma.poscontrol.exception.PointOfSaleNotFoundException;
 import com.galedesma.poscontrol.mapper.PointOfSaleMapper;
 import com.galedesma.poscontrol.repository.PointOfSaleRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class PointOfSaleService {
         return new GetAllPOSResponse(responseList.size(), responseList);
     }
 
-    public PointOfSaleResponse createPOS(PointOfSaleCreateRequest createRequest){
+    public PointOfSaleResponse createPOS(PointOfSaleCreateRequest createRequest) {
         PointOfSale entity = mapper.toEntity(createRequest);
         PointOfSale saved = this.repository.save(entity);
         return mapper.toResponse(saved);
@@ -63,4 +64,14 @@ public class PointOfSaleService {
         return mapper.toResponse(saved);
     }
 
+    @CacheEvict(value = "point_of_sale", key = "#id")
+    public void deletePOSById(Integer id) {
+        Optional<PointOfSale> optional = this.repository.findById(id);
+
+        if (optional.isEmpty()) {
+            throw new PointOfSaleNotFoundException(String.format("Point of Sale with ID %d not found", id));
+        }
+
+        this.repository.deleteById(id);
+    }
 }
