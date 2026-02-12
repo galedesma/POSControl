@@ -40,4 +40,10 @@ public class PointOfSaleController {
     public ResponseEntity<PointOfSaleResponse> updatePosById(@PathVariable Integer id, @RequestBody PointOfSaleUpdateRequest body) {
         return ResponseEntity.ok(service.updatePOS(id, body));
     }
+
+    @DeleteMapping(value = "/{id}")
+    public ResponseEntity<?> deletePOS(@PathVariable Integer id){
+        service.deletePOSById(id);
+        return ResponseEntity.noContent().build();
+    }
 }
