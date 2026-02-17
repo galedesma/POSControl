@@ -8,4 +8,5 @@ spring:
     password: ${POSTGRES_PASSWORD}
   data:
     redis:
-      url: ${REDIS_URL}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
