@@ -1,45 +1,76 @@
 package com.galedesma.poscontrol.controller;
 
-import com.galedesma.poscontrol.dto.out.GetAllPOSResponse;
-import com.galedesma.poscontrol.dto.out.PointOfSaleResponse;
-import com.galedesma.poscontrol.exception.PointOfSaleNotFoundException;
-import com.galedesma.poscontrol.service.PointOfSaleService;
+import com.galedesma.poscontrol.configuration.RedisTestConfig;
+import com.galedesma.poscontrol.dto.in.PointOfSaleCreateRequest;
+import com.galedesma.poscontrol.repository.PointOfSaleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.MountableFile;
+import tools.jackson.databind.ObjectMapper;
 
-import java.util.List;
+import java.time.Duration;
 
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(PointOfSaleController.class)
+@SpringBootTest
+@Testcontainers
+@AutoConfigureMockMvc
+@Import(RedisTestConfig.class)
 class PointOfSaleControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockitoBean
-    private PointOfSaleService service;
+    @MockitoSpyBean
+    private PointOfSaleRepository repository;
+
+    ObjectMapper mapper = new ObjectMapper();
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:18.1-alpine")
+            .withDatabaseName("testdb")
+            .withUsername("test")
+            .withPassword("test")
+            .withCopyFileToContainer(
+                    MountableFile.forClasspathResource("init_db.sql"),
+                    "/docker-entrypoint-initdb.d/"
+            );
+
+    @Container
+    static GenericContainer<?> redis = new GenericContainer<>("redis:8.4-alpine")
+            .withExposedPorts(6379)
+            .waitingFor(Wait.forListeningPort());
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+    }
 
     @Test
-    void getAllPos() throws Exception {
-        String name1 = "foo";
-        String name2 = "bar";
-        Integer id1 = 1;
-        Integer id2 = 2;
-        Integer expectedSize = 2;
-
-        PointOfSaleResponse pos1 = new PointOfSaleResponse(id1, name1);
-        PointOfSaleResponse pos2 = new PointOfSaleResponse(id2, name2);
-
-        List<PointOfSaleResponse> responseList = List.of(pos1, pos2);
-
-        when(service.getAllPOS()).thenReturn(new GetAllPOSResponse(responseList.size(), responseList));
+    void getAllPosIs200Empty() throws Exception {
+        Integer expectedSize = 0;
 
         mockMvc.perform(get("/pos"))
                 .andExpectAll(
@@ -50,11 +81,81 @@ class PointOfSaleControllerTest {
     }
 
     @Test
-    void getPOSById200() throws Exception {
-        Integer id = 1;
+    void getAllPOSIs200CallsCache() throws Exception {
         String name = "foo";
+        PointOfSaleCreateRequest request = new PointOfSaleCreateRequest(name);
+        String json = mapper.writeValueAsString(request);
+        Integer expectedSize = 1;
 
-        when(service.getPOSById(id)).thenReturn(new PointOfSaleResponse(id, name));
+        mockMvc.perform(post("/pos")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isCreated(),
+                        header().exists("Location")
+                );
+
+        Thread.sleep(Duration.ofSeconds(10L));
+
+        mockMvc.perform(get("/pos"))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.count").value(expectedSize),
+                        jsonPath("$.pointsOfSale").isArray()
+                );
+
+        verify(repository, times(1)).findAll();
+
+        mockMvc.perform(get("/pos"))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.count").value(expectedSize),
+                        jsonPath("$.pointsOfSale").isArray()
+                );
+
+        verify(repository, times(1)).findAll();
+    }
+
+    @Test
+    void createPOSIs201() throws Exception {
+        PointOfSaleCreateRequest request = new PointOfSaleCreateRequest("foo");
+        String json = mapper.writeValueAsString(request);
+
+        mockMvc.perform(post("/pos")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isCreated(),
+                        header().exists("Location")
+                );
+    }
+
+    @Test
+    void createPOSIs400() throws Exception {
+        mockMvc.perform(post("/pos")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isBadRequest()
+                );
+    }
+
+    @Test
+    void getPOSByIdIs200() throws Exception {
+        String name = "foo";
+        PointOfSaleCreateRequest request = new PointOfSaleCreateRequest(name);
+        String json = mapper.writeValueAsString(request);
+
+        MvcResult response = mockMvc.perform(post("/pos")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isCreated(),
+                        header().exists("Location")
+                )
+                .andReturn();
+
+        String[] splitUrl = response.getResponse().getHeader("Location").split("/");
+        String id = splitUrl[4];
 
         mockMvc.perform(get("/pos/{id}", id))
                 .andExpectAll(
@@ -62,14 +163,13 @@ class PointOfSaleControllerTest {
                         jsonPath("$.id").value(id),
                         jsonPath("$.name").value(name)
                 );
+
     }
 
     @Test
-    void getPOSById404() throws Exception {
+    void getPOSByIdIs404() throws Exception {
         Integer id = 1000;
         String expectedMessage = String.format("Point of Sale with ID %d not found", id);
-
-        when(service.getPOSById(id)).thenThrow(new PointOfSaleNotFoundException(expectedMessage));
 
         mockMvc.perform(get("/pos/{id}", id))
                 .andExpectAll(
