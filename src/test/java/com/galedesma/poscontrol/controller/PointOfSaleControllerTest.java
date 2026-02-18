@@ -2,6 +2,7 @@ package com.galedesma.poscontrol.controller;
 
 import com.galedesma.poscontrol.configuration.RedisTestConfig;
 import com.galedesma.poscontrol.dto.in.PointOfSaleCreateRequest;
+import com.galedesma.poscontrol.dto.in.PointOfSaleUpdateRequest;
 import com.galedesma.poscontrol.repository.PointOfSaleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,7 @@ import java.time.Duration;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
@@ -172,6 +172,108 @@ class PointOfSaleControllerTest {
         String expectedMessage = String.format("Point of Sale with ID %d not found", id);
 
         mockMvc.perform(get("/pos/{id}", id))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.message").value(expectedMessage)
+                );
+    }
+
+    @Test
+    void updatePOSByIdIs200() throws Exception {
+        String oldName = "foo";
+        String newName = "bar";
+        PointOfSaleCreateRequest createRequest = new PointOfSaleCreateRequest(oldName);
+        PointOfSaleUpdateRequest updateRequest = new PointOfSaleUpdateRequest(newName);
+        String createJson = mapper.writeValueAsString(createRequest);
+        String updateJson = mapper.writeValueAsString(updateRequest);
+
+        MvcResult response = mockMvc.perform(post("/pos")
+                        .content(createJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isCreated(),
+                        header().exists("Location")
+                )
+                .andReturn();
+
+        String[] splitUrl = response.getResponse().getHeader("Location").split("/");
+        String id = splitUrl[4];
+
+        //Thread.sleep(Duration.ofSeconds(1L));
+
+        mockMvc.perform(get("/pos/{id}", id))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").value(id),
+                        jsonPath("$.name").value(oldName)
+                );
+
+        //Thread.sleep(Duration.ofSeconds(1L));
+
+        mockMvc.perform(put("/pos/{id}", id)
+                        .content(updateJson)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isOk(),
+                        jsonPath("$.id").value(id),
+                        jsonPath("$.name").value(newName)
+                );
+    }
+
+    @Test
+    void updatePOSByIdIs404() throws Exception {
+        Integer id = 1000;
+        String name = "bar";
+        String expectedMessage = String.format("Point of Sale with ID %d not found", id);
+        PointOfSaleUpdateRequest request = new PointOfSaleUpdateRequest(name);
+        String json = mapper.writeValueAsString(request);
+
+        mockMvc.perform(put("/pos/{id}", id)
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.message").value(expectedMessage)
+                );
+    }
+
+    @Test
+    void deletePOSIs200() throws Exception {
+        String name = "foo";
+        PointOfSaleCreateRequest request = new PointOfSaleCreateRequest(name);
+        String json = mapper.writeValueAsString(request);
+
+        MvcResult response = mockMvc.perform(post("/pos")
+                        .content(json)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpectAll(
+                        status().isCreated(),
+                        header().exists("Location")
+                )
+                .andReturn();
+
+        String[] splitUrl = response.getResponse().getHeader("Location").split("/");
+        String id = splitUrl[4];
+        String expectedMessage = String.format("Point of Sale with ID %s not found", id);
+
+        mockMvc.perform(delete("/pos/{id}", id))
+                .andExpectAll(
+                        status().isNoContent()
+                );
+
+        mockMvc.perform(get("/pos/{id}", id))
+                .andExpectAll(
+                        status().isNotFound(),
+                        jsonPath("$.message").value(expectedMessage)
+                );
+    }
+
+    @Test
+    void deletePOSIs404() throws Exception {
+        Integer id = 1000;
+        String expectedMessage = String.format("Point of Sale with ID %d not found", id);
+
+        mockMvc.perform(delete("/pos/{id}", id))
                 .andExpectAll(
                         status().isNotFound(),
                         jsonPath("$.message").value(expectedMessage)
