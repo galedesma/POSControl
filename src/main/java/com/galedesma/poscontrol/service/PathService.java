@@ -7,6 +7,7 @@ import com.galedesma.poscontrol.entity.PointOfSale;
 import com.galedesma.poscontrol.mapper.PathMapper;
 import com.galedesma.poscontrol.repository.PathRepository;
 import lombok.AllArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class PathService {
     private final PathRepository repository;
     private final PathMapper mapper;
 
+    @Cacheable(value = "paths_connected_to", key = "#posId")
     public AllConnectedPathsResponse getAllPathsTo(Integer posId){
         List<Path> allPathsConnected = repository.findAllPathsConnectedTo(posId);
 
