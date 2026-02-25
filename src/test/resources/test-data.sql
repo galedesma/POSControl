@@ -11,7 +11,7 @@ INSERT INTO point_of_sale (id, name) VALUES ( 9, 'Santa Cruz' );
 INSERT INTO point_of_sale (id, name) VALUES ( 10, 'Catamarca' );
 
 -- Insert Paths
-INSERT INTO paths (id, pos1_id, pos2_id, cost) VALUES (1, 1, 2, 3);
+INSERT INTO paths (id, pos1_id, pos2_id, cost) VALUES (1, 1, 2, 2);
 INSERT INTO paths (id, pos1_id, pos2_id, cost) VALUES (2, 1, 3, 3);
 INSERT INTO paths (id, pos1_id, pos2_id, cost) VALUES (3, 2, 3, 5);
 INSERT INTO paths (id, pos1_id, pos2_id, cost) VALUES (4, 2, 4, 10);
